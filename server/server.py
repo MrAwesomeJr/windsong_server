@@ -1,9 +1,7 @@
 import socket
-import time
-import backend
-from config import Config
-from client import Client
-import threading
+import server.backend
+from server.config import Config
+
 
 class Server:
     def __init__(self, backend, config_file_name=""):

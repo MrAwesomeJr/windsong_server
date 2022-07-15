@@ -1,5 +1,5 @@
-from server import Server
-import backend
+from server.server import Server
+from server import backend
 
 server = Server(backend=backend.NetBackend)
 

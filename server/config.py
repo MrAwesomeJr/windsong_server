@@ -1,8 +1,7 @@
-from client import Client
 import sys
 from os.path import exists
 from pathlib import Path
-from client import Client
+from server.client import Client
 import json
 
 
@@ -14,7 +13,7 @@ class Config:
         self.load_file(config_file_name)
 
     def load_file(self, config_file_name):
-        default_config_file_name = "config.json"
+        default_config_file_name = "./config.json"
 
         # accept file as command line argument
         if len(sys.argv) >= 2:

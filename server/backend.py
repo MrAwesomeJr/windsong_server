@@ -1,7 +1,7 @@
-from config import Config
+from server.config import Config
 import socket
 import time
-from client import Client
+from server.client import Client
 
 
 def get_message(client):
