@@ -6,7 +6,6 @@ from songserver.client import Client
 
 def get_message(client):
     if client.connected:
-        blocking_status = client.connection.getblocking()
         client.connection.setblocking(False)
         try:
             msg = client.connection.recv(1024)
@@ -14,7 +13,7 @@ def get_message(client):
                 client.connected = False
                 client.connection.close()
             else:
-                client.connection.setblocking(blocking_status)
+                client.connection.setblocking(True)
                 return msg
         except socket.timeout:
             client.connected = False
