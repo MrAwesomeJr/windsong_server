@@ -14,7 +14,7 @@ def get_message(client):
             return msg
         except socket.timeout:
             client.connected = False
-            print("Connection with \""+client.name+"\" at address "+self.stringify_addr(client.addr)+" timed out")
+            print("Connection with \""+client.name+"\" at address "+client.addr[0]+":"+str(client.addr[1])+" timed out")
             client.connection.close()
 
     return None

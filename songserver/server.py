@@ -15,7 +15,7 @@ class Server:
         self.socket.bind(self.sync_addr)
         print("Socket bound to", self.stringify_addr(self.sync_addr))
         self.socket.listen(5)
-        print("Listening for", len(self.clients), "connections...")
+        print("Listening for", len(self.clients), "connection(s)...")
 
     def stringify_addr(self, addr):
         return addr[0]+":"+str(addr[1])
