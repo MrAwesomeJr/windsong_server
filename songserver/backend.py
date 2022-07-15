@@ -10,14 +10,11 @@ def get_message(client):
         client.connection.settimeout(0.1)
         try:
             msg = client.connection.recv(1024)
-            if len(msg) == 0:
-                client.connected = False
-                client.connection.close()
-            else:
-                client.connection.settimeout(old_timeout)
-                return msg
+            client.connection.settimeout(old_timeout)
+            return msg
         except socket.timeout:
             client.connected = False
+            print("Connection with \""+client.name+"\" at address "+self.stringify_addr(client.addr)+" timed out")
             client.connection.close()
 
     return None
@@ -68,7 +65,10 @@ class NetBackend(NullBackend):
             desync = 0
             for pinged_client in self.pinged_clients:
                 if pinged_client.addr[0] == self.master_clock:
-                    return ((pinged_client.ping + client.ping) / 2)
+                    if pinged_client.ping is not None and client.ping is not None:
+                        return ((pinged_client.ping + client.ping) / 2)
+                    else:
+                        return 0
 
     def run(self, sock, clients):
         self.pinged_clients = []
@@ -86,8 +86,11 @@ class NetBackend(NullBackend):
 
         print("All clients received start time.")
 
-        for client in self.pinged_clients:
-            if client.connected:
-                client.ping = get_message(client)
+        last_request = time.perf_counter()
+        # expect one ping every 5 seconds
+        while (time.perf_counter() - last_request) < 10:
+            last_request = time.perf_counter()
+            for client in self.pinged_clients:
                 if client.connected:
+                    client.ping = get_message(client)
                     client.connection.send(str(self.get_client_desync(client)).encode())

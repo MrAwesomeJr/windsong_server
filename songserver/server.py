@@ -13,9 +13,12 @@ class Server:
 
         self.socket = socket.socket()
         self.socket.bind(self.sync_addr)
-        print("Socket bound to", self.sync_addr[0]+":"+str(self.sync_addr[1]))
+        print("Socket bound to", self.stringify_addr(self.sync_addr))
         self.socket.listen(5)
-        print("Listening for connections...")
+        print("Listening for", len(self.clients), "connections...")
+
+    def stringify_addr(self, addr):
+        return addr[0]+":"+str(addr[1])
 
     def run(self):
         self.await_connections()
@@ -32,10 +35,10 @@ class Server:
                         client.connection = connection
                         client.connection.setblocking(False)
                         client.addr = addr
-                        print("Connected client \""+client.name+"\" at address "+str(client.addr[0])+":"+str(client.addr[1]))
+                        print("Connected client \""+client.name+"\" at address "+self.stringify_addr(client.addr))
                         break
             else:
-                print("Unexpected connection at address"+str(addr[0])+":"+str(addr[1]))
+                print("Unexpected connection at address "+self.stringify_addr(addr))
 
             for client in self.clients:
                 backend.get_message(client)
