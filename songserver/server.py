@@ -1,6 +1,6 @@
 import socket
-import server.backend
-from server.config import Config
+from songserver import backend
+from songserver.config import Config
 
 
 class Server:

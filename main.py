@@ -1,7 +1,6 @@
-from server.server import Server
-from server import backend
+import songserver
 
-server = Server(backend=backend.NetBackend)
+server = songserver.Server(backend=songserver.backend.NetBackend)
 
 while True:
     server.run()

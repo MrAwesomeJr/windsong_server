@@ -1,7 +1,7 @@
 import sys
 from os.path import exists
 from pathlib import Path
-from server.client import Client
+from songserver.client import Client
 import json
 
 

@@ -1,7 +1,7 @@
-from server.config import Config
+from songserver.config import Config
 import socket
 import time
-from server.client import Client
+from songserver.client import Client
 
 
 def get_message(client):
