@@ -5,17 +5,18 @@ from songserver.client import Client
 
 
 def get_message(client):
+    # TODO: FIX THIS THINGY
+    # gets insta dced for some reason (why?)
+
     if client.connected:
-        old_timeout = client.connection.gettimeout()
-        client.connection.settimeout(0.1)
-        try:
-            msg = client.connection.recv(1024)
-            client.connection.settimeout(old_timeout)
-            return msg
-        except socket.timeout:
+        # client connection should be non-blocking
+        msg = client.connection.recv(1024)
+        if msg == b'':
             client.connected = False
             print("Connection with \""+client.name+"\" at address "+client.addr[0]+":"+str(client.addr[1])+" timed out")
             client.connection.close()
+        else:
+            return msg.decode()
 
     return None
 
@@ -42,19 +43,22 @@ class OnInitBackend(NullBackend):
 
 
 class NetBackend(NullBackend):
-    class PingedClient(Client):
+    class _PingedClient(Client):
         def __init__(self, client):
             self.name = client.name
             self.addr = client.addr
             self.connected = client.connected
             self.connection = client.connection
             self.ping = None
-            self.pinged_clients = []
 
-            self.config = Config()
-            self.master_clock = self.config.get_master_clock()
+    def __init__(self):
+        self.pinged_clients = []
 
-    def get_client_desync(self, client):
+        self.config = Config()
+        self.master_clock = self.config.get_master_clock()
+
+    def _get_client_desync(self, client):
+        # TODO: check positive/negative
         # could probably replace this with a switch case but most people aren't using 3.10 yet so...
         if self.master_clock == "game":
             return (client.ping / 2)
@@ -73,8 +77,11 @@ class NetBackend(NullBackend):
     def run(self, sock, clients):
         self.pinged_clients = []
         for client in clients:
-            self.pinged_clients.append(client)
+            self.pinged_clients.append(self._PingedClient(client))
 
+        # 3 is an arbitrary value to give time for all clients to process before starting.
+        # 0 isn't possible because by the time the clients receive the time it will already have passed
+        # and therefore all clients will start late.
         start_time = time.time() + 3
         print("Start time set to", start_time)
 
@@ -87,10 +94,11 @@ class NetBackend(NullBackend):
         print("All clients received start time.")
 
         last_request = time.perf_counter()
-        # expect one ping every 5 seconds
+        # expect one ping every 5 seconds per client
         while (time.perf_counter() - last_request) < 10:
-            last_request = time.perf_counter()
             for client in self.pinged_clients:
                 if client.connected:
+                    last_request = time.perf_counter()
                     client.ping = get_message(client)
-                    client.connection.send(str(self.get_client_desync(client)).encode())
+                    # TODO: should only send if message received
+                    client.connection.send(str(self._get_client_desync(client)).encode())

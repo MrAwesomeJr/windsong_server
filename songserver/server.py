@@ -13,18 +13,18 @@ class Server:
 
         self.socket = socket.socket()
         self.socket.bind(self.sync_addr)
-        print("Socket bound to", self.stringify_addr(self.sync_addr))
+        print(f"Socket bound to {self._stringify_addr(self.sync_addr)}")
         self.socket.listen(5)
-        print("Listening for", len(self.clients), "connection(s)...")
+        print(f"Listening for {len(self.clients)} connection(s)...")
 
-    def stringify_addr(self, addr):
-        return addr[0]+":"+str(addr[1])
+    def _stringify_addr(self, addr):
+        return f"{addr[0]}:{addr[1]}"
 
     def run(self):
-        self.await_connections()
+        self._await_connections()
         self.backend.run(self.socket, self.client)
 
-    def await_connections(self):
+    def _await_connections(self):
         # waits until all clients have connected = True before continuing
         while True:
             connection, addr = self.socket.accept()
@@ -35,10 +35,10 @@ class Server:
                         client.connection = connection
                         client.connection.setblocking(False)
                         client.addr = addr
-                        print("Connected client \""+client.name+"\" at address "+self.stringify_addr(client.addr))
+                        print(f"Connected client {client.name} at address {self._stringify_addr(client.addr)}")
                         break
             else:
-                print("Unexpected connection at address "+self.stringify_addr(addr))
+                print(f"Unexpected connection at address {self._stringify_addr(addr)}")
 
             for client in self.clients:
                 backend.get_message(client)
@@ -47,6 +47,3 @@ class Server:
                 break
 
         print("All expected clients connected.")
-
-        for client in self.clients:
-            client.connection.setblocking(True)
