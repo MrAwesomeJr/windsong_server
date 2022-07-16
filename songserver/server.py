@@ -22,7 +22,7 @@ class Server:
 
     def run(self):
         self._await_connections()
-        self.backend.run(self.socket, self.client)
+        self.backend.run(self.socket, self.clients)
 
     def _await_connections(self):
         # waits until all clients have connected = True before continuing

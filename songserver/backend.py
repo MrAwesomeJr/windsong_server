@@ -69,6 +69,7 @@ class NetBackend(NullBackend):
         elif self.master_clock == "server":
             return "NTP"
         else:
+            # TODO: if you're master
             # self.master_clock is a client ip
             desync = 0
             for pinged_client in self.pinged_clients:
@@ -103,8 +104,9 @@ class NetBackend(NullBackend):
             for client in self.pinged_clients:
                 if client.connected:
                     last_request = time.perf_counter()
-                    client.ping = get_message(client)
-                    if client.ping is not None:
+                    ping = get_message(client)
+                    if ping is not None:
+                        client.ping = float(ping)
                         client.connection.send(str(self._get_client_desync(client)).encode())
                 else:
                     # TODO: can try to reconnect with client
