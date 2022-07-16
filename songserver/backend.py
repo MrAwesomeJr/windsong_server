@@ -10,7 +10,11 @@ def get_message(client):
 
     if client.connected:
         # client connection should be non-blocking
-        msg = client.connection.recv(1024)
+        try:
+            msg = client.connection.recv(1024)
+        except BlockingIOError:
+            return None
+
         if msg == b'':
             client.connected = False
             print("Connection with \""+client.name+"\" at address "+client.addr[0]+":"+str(client.addr[1])+" timed out")
@@ -100,5 +104,8 @@ class NetBackend(NullBackend):
                 if client.connected:
                     last_request = time.perf_counter()
                     client.ping = get_message(client)
-                    # TODO: should only send if message received
-                    client.connection.send(str(self._get_client_desync(client)).encode())
+                    if client.ping is not None:
+                        client.connection.send(str(self._get_client_desync(client)).encode())
+                else:
+                    # TODO: can try to reconnect with client
+                    pass
