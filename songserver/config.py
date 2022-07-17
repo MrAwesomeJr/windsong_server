@@ -3,12 +3,14 @@ from os.path import exists
 from pathlib import Path
 from songserver.client import Client
 import json
+import logging
 
 
 class Config:
     def __init__(self, config_file_name=""):
         self.config_file_name = ""
         self.config_dictionary = {}
+        self.logger = logging.getLogger("config")
 
         self.load_file(config_file_name)
 
@@ -28,8 +30,11 @@ class Config:
         file = open(self.config_file_name,"r+")
         self.config_dictionary = json.loads(file.read())
         file.close()
+        self.logger.debug(f"Config file {self.config_file_name} read")
 
     def get_sync_addr(self):
+        self.logger.debug(f"Sync address of {self.config_file_name} retrieved")
+
         sync_addr = ("0.0.0.0", 22101)
 
         if "sync_ip" in self.config_dictionary:
@@ -40,6 +45,8 @@ class Config:
         return sync_addr
 
     def get_clients(self):
+        self.logger.debug(f"Clients of {self.config_file_name} retrieved")
+
         clients = []
 
         if "clients" in self.config_dictionary:
@@ -51,6 +58,8 @@ class Config:
         return clients
 
     def get_ips(self):
+        self.logger.debug(f"IPs of {self.config_file_name} retrieved")
+
         ips = []
 
         if "clients" in self.config_dictionary:
@@ -62,6 +71,7 @@ class Config:
         return ips
 
     def get_master_clock(self):
+        self.logger.debug(f"Master Clock of {self.config_file_name} retrieved")
         # accepts either an existing client ip or the game server clock by default.
         # possible values are ["game"|"server"|<ip>]
         default_master_clock = "game"

@@ -2,6 +2,7 @@ from songserver.config import Config
 import socket
 import time
 from songserver.client import Client
+import logging
 
 
 def get_message(client):
@@ -27,23 +28,24 @@ def get_message(client):
 
 class NullBackend:
     def __init__(self):
-        pass
+        self.logger = logging.getLogger("backend")
 
     def run(self, sock, clients):
-        print("Backend Ran. Nothing happened because you set your backend to NullBackend.")
+        self.logger.info("Backend Ran. Nothing happened because you set your backend to NullBackend.")
 
 
 class OnInitBackend(NullBackend):
     def run(self, sock, clients):
         start_time = time.time() + 3
-        print("Start time set to", start_time)
+        self.logger.info("Start time set to", start_time)
 
         for client in clients:
             client.connection.send(str(start_time).encode())
             client.connection.shutdown(socket.SHUT_RDWR)
             client.connection.close()
+            self.logger.debug(f"Client {client.name} shut down cleanly.")
 
-        print("All clients received start time.")
+        self.logger.info("All clients received start time.")
 
 
 class NetBackend(NullBackend):
@@ -56,6 +58,7 @@ class NetBackend(NullBackend):
             self.ping = None
 
     def __init__(self):
+        super().__init__()
         self.pinged_clients = []
 
         self.config = Config()
@@ -88,7 +91,7 @@ class NetBackend(NullBackend):
         # 0 isn't possible because by the time the clients receive the time it will already have passed
         # and therefore all clients will start late.
         start_time = time.time() + 3
-        print("Start time set to", start_time)
+        self.logger.info(f"Start time set to {start_time}")
 
         # clients expect a start time before they start sending pings to the server.
 
@@ -96,7 +99,7 @@ class NetBackend(NullBackend):
             if client.connected:
                 client.connection.send(str(start_time).encode())
 
-        print("All clients received start time.")
+        self.logger.info("All clients received start time.")
 
         last_request = time.perf_counter()
         # expect one ping every 5 seconds per client
