@@ -71,7 +71,7 @@ class NetBackend(NullBackend):
         # TODO: check positive/negative
         # could probably replace this with a switch case but most people aren't using 3.10 yet so...
         if self.master_clock == "game":
-            return (client.ping / 2)
+            return -(client.ping / 2)
         elif self.master_clock == "server":
             return "NTP"
         else:
@@ -81,7 +81,7 @@ class NetBackend(NullBackend):
             for pinged_client in self.pinged_clients:
                 if pinged_client.addr[0] == self.master_clock:
                     if pinged_client.ping is not None and client.ping is not None:
-                        return ((pinged_client.ping + client.ping) / 2)
+                        return -((pinged_client.ping + client.ping) / 2)
                     else:
                         return 0
 
