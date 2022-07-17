@@ -16,6 +16,7 @@ class Server:
         self.sync_addr = self.config.get_sync_addr()
         self.clients = self.config.get_clients()
 
+    def _init_socket(self):
         self.socket = socket.socket()
         self.socket.bind(self.sync_addr)
         self.logger.info(f"Socket bound to {self._stringify_addr(self.sync_addr)}")
@@ -32,6 +33,7 @@ class Server:
 
     def _await_connections(self):
         # waits until all clients have connected as True before continuing
+        self._init_socket()
         self.socket.setblocking(True)
         while True:
             connection, addr = self.socket.accept()
