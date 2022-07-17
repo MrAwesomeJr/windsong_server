@@ -7,25 +7,24 @@ import logging
 
 def get_message(client):
     logger = logging.getLogger("server")
-    # TODO: FIX THIS THINGY
-    # gets insta dced for some reason (why?)
 
     if client.connected:
         # client connection should be non-blocking
         try:
             msg = client.connection.recv(1024)
         except BlockingIOError:
-            return None
+            pass
         except ConnectionResetError:
-            logger.warning(f"Connection with \"{client.name}\" at address {client.addr[0]}:{client.addr[1]} reset by client.")
-            return None
-
-        if msg == b'':
             client.connected = False
-            logger.warning(f"Connection with \"{client.name}\" at address {client.addr[0]}:{client.addr[1]} closed by client.")
+            logger.warning(f"Connection with \"{client.name}\" at address {client.addr[0]}:{client.addr[1]} reset by client.")
             client.connection.close()
         else:
-            return msg.decode()
+            if msg == b'':
+                client.connected = False
+                logger.warning(f"Connection with \"{client.name}\" at address {client.addr[0]}:{client.addr[1]} closed by client.")
+                client.connection.close()
+            else:
+                return msg.decode()
 
     return None
 
