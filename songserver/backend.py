@@ -119,8 +119,6 @@ class NetBackend(NullBackend):
                         desync = self._get_client_desync(client)
                         client.connection.send(str(desync).encode())
                         self.logger.debug(f"Desync of {desync} sent to \"{client.name}\".")
-                    else:
-                        self.logger.error(f"Ping not received from client \"{client.name}\".")
                         
             # attempt reconnection to clients. socket should be in non-blocking mode.
             try:
@@ -140,4 +138,3 @@ class NetBackend(NullBackend):
                             break
                 else:
                     self.logger.info(f"Unexpected connection at address {self._stringify_addr(addr)}")
-                    

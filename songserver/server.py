@@ -31,12 +31,13 @@ class Server:
         self.backend.run(self.socket, self.clients)
 
     def _await_connections(self):
-        # waits until all clients have connected = True before continuing
+        # waits until all clients have connected as True before continuing
+        self.socket.setblocking(True)
         while True:
             connection, addr = self.socket.accept()
             if addr[0] in map(lambda client: client.addr[0], self.clients):
                 for client in self.clients:
-                    if client.addr[0] == addr[0] and client.connected == False:
+                    if client.addr[0] == addr[0] and client.connected is False:
                         client.connected = True
                         client.connection = connection
                         client.connection.setblocking(False)
