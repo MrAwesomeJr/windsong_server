@@ -6,6 +6,7 @@ import logging
 
 
 def get_message(client):
+    logger = logging.getLogger("server")
     # TODO: FIX THIS THINGY
     # gets insta dced for some reason (why?)
 
@@ -18,7 +19,7 @@ def get_message(client):
 
         if msg == b'':
             client.connected = False
-            print("Connection with \""+client.name+"\" at address "+client.addr[0]+":"+str(client.addr[1])+" timed out")
+            logger.warning("Connection with \""+client.name+"\" at address "+client.addr[0]+":"+str(client.addr[1])+" timed out")
             client.connection.close()
         else:
             return msg.decode()
@@ -91,7 +92,7 @@ class NetBackend(NullBackend):
         # 0 isn't possible because by the time the clients receive the time it will already have passed
         # and therefore all clients will start late.
         start_time = time.time() + 3
-        self.logger.info(f"Start time set to {start_time}")
+        self.logger.info(f"Start time set to {start_time}.")
 
         # clients expect a start time before they start sending pings to the server.
 
@@ -111,6 +112,8 @@ class NetBackend(NullBackend):
                     if ping is not None:
                         client.ping = float(ping)
                         client.connection.send(str(self._get_client_desync(client)).encode())
+                    else:
+                        self.logger.warning("Ping not received from client.")
                 else:
                     # TODO: can try to reconnect with client
                     pass
