@@ -16,10 +16,13 @@ def get_message(client):
             msg = client.connection.recv(1024)
         except BlockingIOError:
             return None
+        except ConnectionResetError:
+            logger.warning(f"Connection with \"{client.name}\" at address {client.addr[0]}:{client.addr[1]} reset by client.")
+            return None
 
         if msg == b'':
             client.connected = False
-            logger.warning("Connection with \""+client.name+"\" at address "+client.addr[0]+":"+str(client.addr[1])+" timed out")
+            logger.warning(f"Connection with \"{client.name}\" at address {client.addr[0]}:{client.addr[1]} closed by client.")
             client.connection.close()
         else:
             return msg.decode()
@@ -44,7 +47,7 @@ class OnInitBackend(NullBackend):
             client.connection.send(str(start_time).encode())
             client.connection.shutdown(socket.SHUT_RDWR)
             client.connection.close()
-            self.logger.debug(f"Client {client.name} shut down cleanly.")
+            self.logger.debug(f"Client socket \"{client.name}\" shutdown cleanly.")
 
         self.logger.info("All clients received start time.")
 
@@ -84,6 +87,7 @@ class NetBackend(NullBackend):
                         return 0
 
     def run(self, sock, clients):
+        sock.setblocking(False)
         self.pinged_clients = []
         for client in clients:
             self.pinged_clients.append(self._PingedClient(client))
@@ -111,9 +115,29 @@ class NetBackend(NullBackend):
                     ping = get_message(client)
                     if ping is not None:
                         client.ping = float(ping)
-                        client.connection.send(str(self._get_client_desync(client)).encode())
+                        self.logger.debug(f"Ping of {client.ping} received from \"{client.name}\".")
+                        desync = self._get_client_desync(client)
+                        client.connection.send(str(desync).encode())
+                        self.logger.debug(f"Desync of {desync} sent to \"{client.name}\".")
                     else:
-                        self.logger.warning("Ping not received from client.")
+                        self.logger.error(f"Ping not received from client \"{client.name}\".")
+                        
+            # attempt reconnection to clients. socket should be in non-blocking mode.
+            try:
+                connection, addr = sock.accept()
+            except BlockingIOError:
+                # will throw error when no client is requesting connection
+                pass
+            else:
+                if addr[0] in map(lambda client: client.addr[0], clients):
+                    for client in clients:
+                        if client.addr[0] == addr[0] and client.connected == False:
+                            client.connected = True
+                            client.connection = connection
+                            client.connection.setblocking(False)
+                            client.addr = addr
+                            self.logger.info(f"Connected client {client.name} at address {self._stringify_addr(client.addr)}")
+                            break
                 else:
-                    # TODO: can try to reconnect with client
-                    pass
+                    self.logger.info(f"Unexpected connection at address {self._stringify_addr(addr)}")
+                    
