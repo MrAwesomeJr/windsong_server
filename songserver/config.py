@@ -80,8 +80,17 @@ class Config:
         if "master_clock" in self.config_dictionary:
             master_clock = self.config_dictionary["master_clock"]
 
+        clients = self.get_clients()
+        names = list(map(lambda x: x[0], clients))
+        ips = list(map(lambda x: x[1], clients))
+
         if master_clock not in ("game","server"):
-            if master_clock not in self.get_ips():
+            # set master clock to an ip
+            # master_clock may be an identifier name
+            if master_clock in names:
+                master_clock = ips[names.index(master_clock)]
+            # if master clock is an ip do nothing
+            elif master_clock not in ips:
                 master_clock = default_master_clock
 
         return master_clock
