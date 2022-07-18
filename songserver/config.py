@@ -57,6 +57,16 @@ class Config:
 
         return clients
 
+    def get_addresses(self):
+        self.logger.debug(f"Addresses of {self.config_file_name} retrieved")
+
+        clients = []
+
+        if "clients" in self.config_dictionary:
+            clients = self.config_dictionary["clients"]
+
+        return clients
+
     def get_ips(self):
         self.logger.debug(f"IPs of {self.config_file_name} retrieved")
 
@@ -80,7 +90,7 @@ class Config:
         if "master_clock" in self.config_dictionary:
             master_clock = self.config_dictionary["master_clock"]
 
-        clients = self.get_clients()
+        clients = self.get_addresses()
         names = list(map(lambda x: x[0], clients))
         ips = list(map(lambda x: x[1], clients))
 
