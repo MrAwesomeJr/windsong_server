@@ -66,6 +66,7 @@ class NetBackend(NullBackend):
 
         self.config = Config()
         self.master_clock = self.config.get_master_clock()
+        self.logger.info(f"Master clock set to {self.master_clock}")
 
     def _get_client_desync(self, client):
         # TODO: check positive/negative
@@ -75,15 +76,17 @@ class NetBackend(NullBackend):
         elif self.master_clock == "server":
             return "NTP"
         else:
-            # TODO: if you're master
             # self.master_clock is a client ip
             desync = 0
-            for pinged_client in self.pinged_clients:
-                if pinged_client.addr[0] == self.master_clock:
-                    if pinged_client.ping is not None and client.ping is not None:
-                        return -((pinged_client.ping + client.ping) / 2)
-                    else:
-                        return 0
+            if client.addr[0] == self.master_clock:
+                return 0
+            else:
+                for pinged_client in self.pinged_clients:
+                    if pinged_client.addr[0] == self.master_clock:
+                        if pinged_client.ping is not None and client.ping is not None:
+                            return -((pinged_client.ping + client.ping) / 2)
+                        else:
+                            return 0
 
     def run(self, sock, clients):
         sock.setblocking(False)
